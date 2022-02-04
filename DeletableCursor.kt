@@ -6,12 +6,12 @@ import java.util.*
 
 class DeletableCursor(private val cursor: Cursor, deletedLines: MutableSet<Int> = mutableSetOf()) :
     Cursor by cursor {
-        
+
     private val deleted: MutableSet<Int> = deletedLines
     private var delegatingList: LinkedList<Int> = initDelegatingList()
     fun delete(pos: Int) {
         val actualPos = actualPosition(pos)
-        if (delegatingList.size <= pos) {
+        if (actualPos == -1 || actualPos == -2){
             Log.w(TAG, "delete: could not delete $actualPos")
             return
         }
@@ -57,6 +57,7 @@ class DeletableCursor(private val cursor: Cursor, deletedLines: MutableSet<Int> 
     }
     override fun moveToPosition(pos: Int): Boolean {
         val actualPos = actualPosition(pos)
+        if (actualPos == -2) return false
         return moveToActualPosition(actualPos)
     }
     private fun moveToActualPosition(actualPos: Int): Boolean{
@@ -94,10 +95,10 @@ class DeletableCursor(private val cursor: Cursor, deletedLines: MutableSet<Int> 
         }
         out.append("\n")
     }
-    
+
     private fun actualPosition(pos: Int): Int {
         if (pos == -1) return -1
-        return delegatingList[pos]
+        return delegatingList.getOrNull(pos) ?: -2
     }
     private fun locatePositionBackwards(pos: Int): Int {
         return delegatingList.indexOf(pos)
